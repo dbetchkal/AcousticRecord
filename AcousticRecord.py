@@ -1,6 +1,7 @@
-class AcousticRecord(object):
     
-    import numpy as np
+import numpy as np
+
+class AcousticRecord(object):
     
     def __init__(self, n_days, n_events, seed=None):
         
@@ -186,7 +187,7 @@ class AcousticRecord(object):
         # reset attribute to these updated, correct values
         self.noise_free_interval = np.array([nfi_starts, nfi_ends]).T
         
-    def contiguous_regions(condition):
+    def contiguous_regions(self, condition):
         
         """
         Finds contiguous True regions of the boolean array "condition". Returns
@@ -240,14 +241,14 @@ class AcousticRecord(object):
         if(self.ambient is not None):
             
             # 'observe' the contiguous regions of noise
-            self.noise_intervals = contiguous_regions(self.event_record > self.ambient)
+            self.noise_intervals = self.contiguous_regions((self.event_record > self.ambient))
 
             # likewise, 'observe' the contiguous regions of quiet, where pressure from events is less than the ambient level
-            self.noise_free_intervals = contiguous_regions(self.event_record < self.ambient)
+            self.noise_free_intervals = self.contiguous_regions((self.event_record < self.ambient))
 
             # then, correct the noise free intervals to be bounded intervals
             # this removes the overlapping seconds shared by noise and quiet (by convention, always in favor of noise)
-            adjust_noise_free_intervals(self.noise_free_intervals, self.noise_intervals)
+            self.adjust_noise_free_intervals(self.noise_free_intervals, self.noise_intervals)
             
         
         elif(self.ambient is None):
@@ -282,21 +283,20 @@ class AcousticRecord(object):
     
 
         
-        # if the user gives only a single value (or erroneously, a few values)
-        if(Lp.size < self.event_record.size):
+        # if the user gives only a single value
+        if((type(Lp)==float)|(type(Lp)==int)):
             
             # handle input of scalar integers or floating point numbers
-            if((type(Lp) == int)|(type(Lp) == float)):
-           
-                Lp_toUse = np.array(Lp)
-            
-            else:
-                
-                Lp_toUse = Lp
+            Lp_toUse = np.array(Lp)
             
             # create a repeated numpy array of this value
             self.ambient = np.repeat(Lp_toUse, self.event_record.size)
         
+        # raise and error if the array is too short
+        elif((len(Lp) < self.event_record.size)):
+
+            raise Exception("The ambient record is not as long as the entire record. Specify either a constant scalar value or a numpy array of shape ("+str(self.duration)+",).")
+
         # if the user gives ambience defined over the entire record
         elif(Lp.size == self.event_record.size):
             
@@ -312,7 +312,7 @@ class AcousticRecord(object):
     def reset_ambience(self):
         
         self.full_record = self.event_record
-        self.ambient = zeros(shape=self.n_days*3600*24)
+        self.ambient = np.zeros(shape=self.n_days*3600*24)
         
     
 
