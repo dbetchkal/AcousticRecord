@@ -16,7 +16,8 @@ class AcousticRecord(object):
         # they're written such that they can be re-assigned if desired
         self.Lmax_distribution = np.random.randint(200, 800, size=n_events)/10 # same precision as SLM
         self.fwhm_duration_distribution = np.random.normal(100, 50, size=n_events)
-        
+        self.center_times = np.random.randint(self.duration, size=n_events)
+
         # initialize numpy arrays to hold noise, natural sound, and (eventually) the combination of both
         self.event_record = None
         self.ambient = None
@@ -30,6 +31,11 @@ class AcousticRecord(object):
         # initial values are None
         self.noise_intervals = None
         self.noise_free_intervals = None
+
+        # arrays to hold summary metrics
+        self.SPL_summary_metrics = None
+        self.duration_summary_metrics = None
+        self.nfi_list = None
         
         
     def point_source(self, Lmax, duration_fwhm):
@@ -72,10 +78,7 @@ class AcousticRecord(object):
         # we'll use one-second time resolution throughout this model
         self.event_record = np.zeros(shape=self.n_days*3600*24)
         
-        for Lmax, dur_fwhm in zip(self.Lmax_distribution, self.fwhm_duration_distribution):
-            
-            # randomly generate the time at which Lmax will occur - the center of the event
-            center_time = np.random.randint(self.event_record.size)
+        for Lmax, dur_fwhm, center_time in zip(self.Lmax_distribution, self.fwhm_duration_distribution, self.center_times):
             
             point = self.point_source(Lmax, dur_fwhm)
             
@@ -305,8 +308,12 @@ class AcousticRecord(object):
         # add the ambience to the energy from noise to get the full record
         self.full_record = 10*np.log10( np.power(10, self.event_record/10) + np.power(10, self.ambient/10) )
         
-        # as soon as we have the full record, let's simulate what we would measure/observe noise
+        # as soon as we have the full record, let's simulate 
+        # the noise conditions we would measure/observe
         self.annotate_events()
+        self.calculate_SPL_summary()
+        self.calculate_duration_summary()
+        self.calculate_nfi_summary()
         
         
     def reset_ambience(self):
@@ -315,4 +322,119 @@ class AcousticRecord(object):
         self.ambient = np.zeros(shape=self.n_days*3600*24)
         
     
+    def calculate_SPL_summary(self):
 
+        '''
+        This function computes sound pressure level metrics for each noise event in `noise_intervals`.
+        It's called as part of `add_ambience()` and works behind the scenes.
+
+        inputs
+        ------
+        self
+
+        outputs
+        -------
+
+        a 2D numpy array of sound pressure level metrics as 'observed' in `self.full_record`:
+
+            [0] one-second broadband sound pressure levels for each noise event
+            [1] the equivalent sound pressure level over the duration of the event (Leq, *)
+            [2] the sound exposure level of the event
+            [3] the median sound pressure level of the event
+            [4] the maximum one-second sound pressure level of the event (maximum Leq, 1s)
+            [5] the time at which the maximum one-second sound pressure level occurred
+
+        '''
+
+        # the indices corresponding to each noise event (note: NOT each aircraft)
+        SPL_summary_indices = [np.arange(s, e+1) for s, e in self.noise_intervals]
+
+        # create a 2-D array: the full time series of each event, PLUS summary metrics
+        SPL_summary = []
+        for SPL_summary_index in SPL_summary_indices:
+
+            # clip out the one-second record for each event and add it to the full list
+            SPL_extract = self.event_record[SPL_summary_index]
+
+            # Equivalent Sound Pressure Level (Leq, *)
+            Leq = 10*np.log10((1/SPL_extract.size)*np.power(10, SPL_extract/10).sum())
+
+            # Sound Exposure Level (SEL)
+            SEL = Leq + 10*np.log10(SPL_extract.size)
+
+            # Median Sound Pressure Level of the Event (L50)
+            L50_event = np.percentile(SPL_extract, 50)
+
+            # Maximum Sound Pressure Level of the Event (maximum Leq, 1s)
+            # this metric also has precise timing, which we'll capture
+            Lmax_event = np.percentile(SPL_extract, 100)
+            Lmax_time = SPL_summary_index[np.argwhere(SPL_extract == Lmax_event)][0,0]
+
+            # add all these calculated metrics to the composite list
+            SPL_summary.append([SPL_extract, Leq, SEL, L50_event, Lmax_event, Lmax_time])
+
+        out = np.array(SPL_summary).T
+
+        # update the attribute
+        self.SPL_summary_metrics = out
+
+        # it's convenient for this function to return the results
+        return out
+
+    def calculate_duration_summary(self):
+
+        '''
+        This function computes the duration of noise event in `noise_intervals`.
+        It's called as part of `add_ambience()` and works behind the scenes.
+
+        inputs
+        ------
+        self
+
+        outputs
+        -------
+
+        a 2D numpy array of sound pressure level metrics as 'observed' in `self.full_record`:
+
+            [0] a list of each event's duration
+            [1] the mean duration
+            [2] the standard deviation of the durations
+            [3] the median duration
+            [4] the median absolute deviation of the durations
+
+        '''
+    
+        # the durations, themselves
+        duration_list = self.noise_intervals.T[1] - self.noise_intervals.T[0]
+        
+        # mean duration
+        mean = np.mean(duration_list)
+        
+        # standard deviation duration
+        stdev = np.std(duration_list)
+        
+        # median duration
+        median = np.percentile(duration_list, 50)
+        
+        # median absolute deviation of duration
+        mad = np.percentile(np.absolute(duration_list - median), 50)
+        
+        # combine the results and update the class attribute
+        out = np.array([duration_list, mean, stdev, median, mad])
+        
+        # update the attribute
+        self.duration_summary_metrics = out
+
+        # it's convenient to return the results
+        return out
+
+    def calculate_nfi_summary(self):
+
+        '''
+        A very simple function to calculate the length of each noise free interval.
+        '''
+
+        nfis = self.noise_free_intervals
+
+        # determine the duration of each interval and reassign the attribute
+        self.nfi_list = nfis.T[1] - nfis.T[0]
