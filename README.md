@@ -62,7 +62,7 @@ The number of events we just entered:
 >>> rec.n_events 
 2000
 ```
-Traffic properties have also been initialized using default values. These all can be (and for most useful purposes, *should* be) reassigned by the user!
+Traffic properties have also been initialized using default values as follows.
 
 A numpy array representing the maximum Leq, 1s for each of our 2000 aircraft overflights:
 ```
@@ -84,7 +84,7 @@ array([1939102,  425068, 2067604, ...,  474626, 1192696, 1974440])
 ```
 
 
-A trivial modification example: reset all the durations to a constant value, 100 seconds:
+These all can be (and for most useful purposes, *should* be) reassigned by the user! A trivial modification example: reset all the durations to a constant value, 100 seconds:
 ```
 rec.fwhm_duration_distribution = np.full(shape=rec.n_events, fill_value=100)
 ```
@@ -98,6 +98,8 @@ For quick sketches, you can use a constant, scalar value:
 ```
 rec.add_ambience(25.6)
 ```
+
+
 However, it's more informative to simulate ambience as a time series. The following example simulates an acoustic environment where atmospheric refraction causes conditions to become more energetic at night:
 ```
 # remember A sin(Bx) + D, where A is the amplitude, B/2pi is the period, and D is the vertical offset
