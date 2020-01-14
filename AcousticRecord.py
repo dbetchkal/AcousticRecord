@@ -71,7 +71,7 @@ class AcousticRecord(object):
     def combine_point_sources(self):
         
         '''
-        Generate a record of noise for every overflight that occurs.
+        Generate a continuous record of noise for every overflight that occurs.
         '''
         
         # create an empty numpy array to hold the event record
@@ -105,6 +105,14 @@ class AcousticRecord(object):
                 
             # handling 
             try: 
+
+                # cast all the indices to integer
+                rec_start = int(rec_start)
+                rec_end = int(rec_end)
+                event_start = int(event_start)
+                event_end = int(event_end)
+
+                print(rec_start, rec_end, event_start, event_end)
                 
                 self.event_record[rec_start:rec_end] = 10*np.log10(np.power(10, self.event_record[rec_start:rec_end]/10) 
                                                   + np.power(10, point[event_start:event_end]/10))
@@ -219,7 +227,7 @@ class AcousticRecord(object):
         
         return idx
     
-    def annotate_events(self):
+    def annotate_events(self, audibility_buffer=0.0):
         
         '''
         This function divides self.full_record into binary categories: noise, and non-noise.
@@ -244,10 +252,10 @@ class AcousticRecord(object):
         if(self.ambient is not None):
             
             # 'observe' the contiguous regions of noise
-            self.noise_intervals = self.contiguous_regions((self.event_record > self.ambient))
+            self.noise_intervals = self.contiguous_regions((self.event_record > self.ambient + audibility_buffer))
 
             # likewise, 'observe' the contiguous regions of quiet, where pressure from events is less than the ambient level
-            self.noise_free_intervals = self.contiguous_regions((self.event_record < self.ambient))
+            self.noise_free_intervals = self.contiguous_regions((self.event_record < self.ambient + audibility_buffer))
 
             # then, correct the noise free intervals to be bounded intervals
             # this removes the overlapping seconds shared by noise and quiet (by convention, always in favor of noise)
@@ -259,7 +267,7 @@ class AcousticRecord(object):
             raise AttributeError('Ambience is undefined. Use of .add_ambience() is prerequisite to .annotate_events()')
         
         
-    def add_ambience(self, Lp):
+    def add_ambience(self, Lp, audibility_buffer=0.0):
         
         '''
         Define and add ambience - an essential attribute of acoustic environments - to the full record.
@@ -272,6 +280,9 @@ class AcousticRecord(object):
                           If a numpy array shorter than the record is given, the first value will
                           be used as a constant. This function also accepts other types of signals
                           for ambience. 
+
+        audibility_buffer (float): A scalar sound pressure level representing a modifier to the
+                          annotation conditions of a given user. It will modify 'annotate_events'.
         
         output
         ------
@@ -310,7 +321,7 @@ class AcousticRecord(object):
         
         # as soon as we have the full record, let's simulate 
         # the noise conditions we would measure/observe
-        self.annotate_events()
+        self.annotate_events(audibility_buffer=audibility_buffer)
         self.calculate_SPL_summary()
         self.calculate_duration_summary()
         self.calculate_nfi_summary()
