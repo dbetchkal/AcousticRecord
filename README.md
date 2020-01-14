@@ -45,28 +45,46 @@ rec = AcousticRecord(28, 2000)
 ```
 At this point the object has no associated time series. It does have attributes which can be useful for setting up a simulation:
 
+The length of the record in seconds:
 ```
-# the length of the record in seconds
-rec.duration 
+>>> rec.duration 
+2419200
+```
 
-# the number of days we just entered
-rec.n_days 
+The number of days we just entered:
+```
+>>> rec.n_days 
+28
+```
 
-# the number of events we just entered
-rec.n_events 
+The number of events we just entered:
+```
+>>> rec.n_events 
+2000
 ```
 Traffic properties have also been initialized using default values. These all can be (and for most useful purposes, *should* be) reassigned by the user!
-```
-# a numpy array representing the maximum Leq, 1s for each of our 2000 aircraft overflights 
-rec.Lmax_distribution 
 
-# a numpy array representing the 'full-width at half maximum' duration of each overflight, in seconds
-rec.fwhm_duration_distribution
-
-# a numpy array representing the time at which Lmax occurs for each overflight, in seconds elapsed
-rec.center_times
+A numpy array representing the maximum Leq, 1s for each of our 2000 aircraft overflights:
 ```
-A trivial example would be resetting all the durations to a constant value, 100 seconds:
+>>> rec.Lmax_distribution
+array([64.8, 58.1, 73.5, ..., 46.7, 20.7, 59.8]) 
+```
+
+A numpy array representing the 'full-width at half maximum' duration of each overflight, in seconds:
+```
+>>> rec.fwhm_duration_distribution
+array([ 78.15853618, 130.0608868 , 129.35119917, ..., 152.25337917,
+       156.49251599, 130.17474321])
+```
+
+A numpy array representing the time at which Lmax occurs for each overflight, in seconds elapsed:
+```
+>>> rec.center_times
+array([1939102,  425068, 2067604, ...,  474626, 1192696, 1974440])
+```
+
+
+A trivial modification example: reset all the durations to a constant value, 100 seconds:
 ```
 rec.fwhm_duration_distribution = np.full(shape=rec.n_events, fill_value=100)
 ```
