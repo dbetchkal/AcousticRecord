@@ -165,11 +165,11 @@ array([[      0,    1425],
 
 ### Access to acoustic metrics
 
-Though the binarized noise/non-noise time periods are helpful for detailed use cases, much commonly a user may want a few metrics without the fuss of performing the calculations oneself. `AcousticRecord` automatically calculates many of these metrics when the `.add_ambience()` method is used. This gives us three attributes:
+Though the binarized noise/non-noise time periods are helpful for detailed use cases, more commonly a user may want a few metrics without the fuss of performing the calculations oneself. `AcousticRecord` automatically calculates many of these metrics when the `.add_ambience()` method is used. This gives us three attributes:
 
 A summary of energy-based metrics:
 ```
->>> self.SPL_summary_metrics
+>>> rec.SPL_summary_metrics
 ```
 which results in a 2D numpy array of the following values
 >[0] one-second broadband sound pressure levels for each noise event <br>
@@ -181,7 +181,7 @@ which results in a 2D numpy array of the following values
 
 A summary of duration-based metrics:
 ```
->>> self.duration_summary_metrics
+>>> rec.duration_summary_metrics
 ```
 which results in a 2D numpy array of the following values
 >[0] a list of each event's duration <br>
@@ -192,7 +192,7 @@ which results in a 2D numpy array of the following values
 
 Finally there is a very simple list of noise-free intervals:
 ```
->>> self.nfi_list
+>>> rec.nfi_list
 ```
 
 These can be exceptionally helpful for analyzing the effects of changing human and/or natural conditions on acoustic metrics.
