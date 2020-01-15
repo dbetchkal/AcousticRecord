@@ -111,8 +111,6 @@ class AcousticRecord(object):
                 rec_end = int(rec_end)
                 event_start = int(event_start)
                 event_end = int(event_end)
-
-                print(rec_start, rec_end, event_start, event_end)
                 
                 self.event_record[rec_start:rec_end] = 10*np.log10(np.power(10, self.event_record[rec_start:rec_end]/10) 
                                                   + np.power(10, point[event_start:event_end]/10))
