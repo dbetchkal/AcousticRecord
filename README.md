@@ -34,6 +34,7 @@ from AcousticRecord import AcousticRecord
 
 ## The `AcousticRecord` class
 
+### Initializing a record
 We begin by initializing a record. Records must have:
 
 - a length, in days
@@ -91,16 +92,18 @@ rec.fwhm_duration_distribution = np.full(shape=rec.n_events, fill_value=100)
 
 ---
 
-**Noise has *no physical meaning* outside of the natural ambient acoustic energy it is embedded in.** So our next task is to add some ambience to our record. It can be done in several ways.
+### Natural Ambient Acoustic Energy
+
+**Noise has *no physical meaning* outside of the natural ambient acoustic energy it is embedded in.** So we must add some ambience to our record. It can be done in several ways.
 <br>
 
 For quick sketches, you can use a constant, scalar value:
 ```
 rec.add_ambience(25.6)
 ```
+<img src="https://github.com/dbetchkal/AcousticRecord/blob/master/AcousticRecord_figure1.png" alt="figure1" class="inline"/>
 
-
-However, it's more informative to simulate ambience as a time series. The following example simulates an acoustic environment where atmospheric refraction causes conditions to become more energetic at night:
+However, it's often more realistic to simulate ambience as a temporal process. The following example simulates an acoustic environment where atmospheric refraction causes conditions to become more energetic in the early hours of the morning:
 ```
 # remember A sin(Bx) + D, where A is the amplitude, B/2pi is the period, and D is the vertical offset
 B = (2*np.pi)/(24*3600) # one oscillation takes 24 hours
@@ -108,19 +111,29 @@ B = (2*np.pi)/(24*3600) # one oscillation takes 24 hours
 nocturnal_increase = 5*np.sin(B*np.arange(rec.duration))+25.6
 rec.add_ambience(nocturnal_increase)
 ```
+<img src="https://github.com/dbetchkal/AcousticRecord/blob/master/AcousticRecord_figure2.png" alt="figure1" class="inline"/>
 
 ---
+### An acoustic record: the superposition of natural ambience and noise
 
-Once ambience has been added we have access to three time series: 
+Once ambience has been added we have array access to three time series: 
+
+The natural ambience we just defined...
 ```
-# the natural ambience we just defined
-rec.ambient 
+>>> rec.ambient
+array([25.6, 25.6, 25.6, ..., 25.6, 25.6, 25.6]) 
+```
 
-# a time series of noise, including overlap (if it occurs)
-rec.event_record
-
-# the superposition of noise and ambient accounting for masking - this approximates what a microphone would record
-rec.full_record
+...a time series of noise, including overlap (if it occurs):
+```
+>>> rec.event_record
+array([0., 0., 0., ..., 0., 0., 0.])
+```
+The superposition of noise and ambient accounting for masking. <br> Importantly **this approximates what a microphone would record**:
+```
+>>> rec.full_record
+array([25.61194502, 25.61194502, 25.61194502, ..., 25.61194502,
+       25.61194502, 25.61194502])
 ```
 We also have access to the *observed* bounds of noise and quiet. These are based off the intervals of time where noise was greater in amplitude than the ambient.
 ```
