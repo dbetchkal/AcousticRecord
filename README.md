@@ -196,4 +196,5 @@ Finally there is a very simple list of noise-free intervals:
 ```
 
 These can be exceptionally helpful for analyzing the effects of changing human and/or natural conditions on acoustic metrics.
-For example, it can be used to show how changing ambient changes the observed distribution of Sound Exposure Level for all events:
+For example, it can be used to show how changing ambient biases the observed distribution of Sound Exposure Levels: <br><br>
+<img src="https://github.com/dbetchkal/AcousticRecord/blob/master/SEL_CDFs_with_changing_natural_ambience.png" alt="figure1" class="inline"/>
