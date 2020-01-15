@@ -20,7 +20,7 @@ Use [git](https://git-scm.com/) to clone the repository.  Using the path to the 
 
 ```
 import sys
-sys.path.append(r"\*\*\stringtranscribe")
+sys.path.append(r"\*\*\AcousticRecord")
 
 from AcousticRecord import AcousticRecord
 ```
@@ -135,13 +135,65 @@ The superposition of noise and ambient accounting for masking. <br> Importantly 
 array([25.61194502, 25.61194502, 25.61194502, ..., 25.61194502,
        25.61194502, 25.61194502])
 ```
-We also have access to the *observed* bounds of noise and quiet. These are based off the intervals of time where noise was greater in amplitude than the ambient.
+We also have access to the bounds of noise and quiet as they would be *observed*. These are based off the intervals of time where noise was greater in amplitude than the ambient.
+
+Start and end times of noise:
 ```
-# start and end times of noise
-rec.noise_intervals
+>>> rec.noise_intervals
+array([[   1425,    1657],
+       [   1964,    2161],
+       [   8643,    8828],
+       ..., 
+       [2414790, 2415052],
+       [2415857, 2416100],
+       [2416441, 2416683]], dtype=int64)
+```
 
-# start and end times of quiet
-rec.noise_free_intervals
+Start and end times of quietude:
+```
+>>> rec.noise_free_intervals
+array([[      0,    1425],
+       [   1657,    1964],
+       [   2161,    8643],
+       ..., 
+       [2415052, 2415857],
+       [2416100, 2416441],
+       [2416683, 2419200]], dtype=int64)
+```
 
-# for example, these are all the times a noise:
-rec.T[0]
+---
+
+### Access to acoustic metrics
+
+Though the binarized noise/non-noise time periods are helpful for detailed use cases, much commonly a user may want a few metrics without the fuss of performing the calculations oneself. `AcousticRecord` automatically calculates many of these metrics when the `.add_ambience()` method is used. This gives us three attributes:
+
+A summary of energy-based metrics:
+```
+>>> self.SPL_summary_metrics
+```
+which results in a 2D numpy array of the following values
+>[0] one-second broadband sound pressure levels for each noise event <br>
+>[1] the equivalent sound pressure level over the duration of the event (Leq, &ast;) <br>
+>[2] the sound exposure level of the event <br>
+>[3] the median sound pressure level of the event <br>
+>[4] the maximum one-second sound pressure level of the event (maximum Leq, 1s) <br>
+>[5] the time at which the maximum one-second sound pressure level occurred
+
+A summary of duration-based metrics:
+```
+>>> self.duration_summary_metrics
+```
+which results in a 2D numpy array of the following values
+>[0] a list of each event's duration <br>
+>[1] the mean duration <br>
+>[2] the standard deviation of the durations <br>
+>[3] the median duration <br>
+>[4] the median absolute deviation of the durations
+
+Finally there is a very simple list of noise-free intervals:
+```
+>>> self.nfi_list
+```
+
+These can be exceptionally helpful for analyzing the effects of changing human and/or natural conditions on acoustic metrics.
+For example, it can be used to show how changing ambient changes the observed distribution of Sound Exposure Level for all events:
