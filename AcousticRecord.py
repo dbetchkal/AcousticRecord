@@ -243,7 +243,7 @@ class AcousticRecord(object):
         '''
         
         # we can't annotate events that don't exist
-        if(self.event_record == None):
+        if(self.event_record is None):
             
             self.combine_point_sources() 
         
@@ -289,7 +289,7 @@ class AcousticRecord(object):
         '''
         
         # if you haven't combined the noise events yet, do that to generate the event record
-        if(self.event_record == None):
+        if(self.event_record is None):
             
             self.combine_point_sources()
     
