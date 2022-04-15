@@ -2,7 +2,7 @@
 
 >A model is not a load of mathematics, as some people think; nor is it some unrealizable ideal, as others believe. It is simply an account expressed as you will – of *the actual organization of a real system.* Without a model of the system to be regulated, you cannot have a regulator.
 >
->— Stafford Beer, [Designing Freedom 1973](http://ada.evergreen.edu/~arunc/texts/cybernetics/beer/book.pdf), pg. 11
+>— Stafford Beer, [Designing Freedom 1973](https://archive.org/details/DesigningFreedom_CBC_Lectures), pg. 11
 
 <br>
 
