@@ -9,3 +9,6 @@ authors:
   - given-names: Davyd Halyn
     family-names: Betchkal
     email: Davyd_Betchkal@nps.gov
+version: 1.0.0
+date-released: 2022-03-01
+url: "https://github.com/dbetchkal/AcousticRecord"
